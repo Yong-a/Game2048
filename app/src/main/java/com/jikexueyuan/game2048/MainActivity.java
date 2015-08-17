@@ -63,11 +63,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         tvHighScore.setText(highScore + "");
     }
 
-    public void addHighScore(int hs) {
-        highScore += hs;
-        showScore();
-    }
-
     public void addScore(int s) {
         score += s;
         highScore = getHighScore();
@@ -94,7 +89,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         editor.commit();
     }
 
-    private int getHighScore() {
+    public int getHighScore() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         return pref.getInt("HighScore", 0);
     }

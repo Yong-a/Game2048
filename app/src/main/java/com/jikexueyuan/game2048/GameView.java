@@ -1,15 +1,14 @@
 package com.jikexueyuan.game2048;
 
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +17,20 @@ import java.util.List;
  * Created by Administrator on 2015/6/30 0030.
  */
 public class GameView extends GridLayout {
+
+    private Card[][] cardMap = new Card[4][4];
+    private List<Point> emptyPoints = new ArrayList<Point>();
+    private Button ok;
+    private Button cancel;
+    private TextView resultScore;
+    private AlertDialog dialog;
+
     public GameView(Context context) {
         super(context);
 
         initGameView();
     }
+
     public GameView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
@@ -92,6 +100,7 @@ public class GameView extends GridLayout {
             }
         }
     }
+
     public void startGame() {
         MainActivity.getMainActivity().clearScore();
         for (int x = 0; x < 4; x++) {
@@ -103,6 +112,7 @@ public class GameView extends GridLayout {
         addRandomNum();
         MainActivity.getMainActivity().addScore(0);
     }
+
     private void addRandomNum() {
         emptyPoints.clear();
 
@@ -152,8 +162,8 @@ public class GameView extends GridLayout {
     private void swipeRight() {
         boolean merge = false;
         for (int x = 0; x < 4; x++) {
-            for (int y = 3; y >0; y--) {
-                for (int y1 = y - 1; y1 >=0; y1--) {
+            for (int y = 3; y > 0; y--) {
+                for (int y1 = y - 1; y1 >= 0; y1--) {
                     if (cardMap[x][y1].getNum() > 0) {
                         if (cardMap[x][y].getNum() <= 0) {
                             cardMap[x][y].setNum(cardMap[x][y1].getNum());
@@ -212,7 +222,7 @@ public class GameView extends GridLayout {
     private void swipeDown() {
         boolean merge = false;
         for (int y = 0; y < 4; y++) {
-            for (int x = 3; x >=0; x--) {
+            for (int x = 3; x >= 0; x--) {
                 for (int x1 = x - 1; x1 >= 0; x1--) {
                     if (cardMap[x1][y].getNum() > 0) {
                         if (cardMap[x][y].getNum() <= 0) {
@@ -238,16 +248,17 @@ public class GameView extends GridLayout {
             checkComplete();
         }
     }
+
     private void checkComplete() {
         boolean complete = true;
         ALL:
-        for (int x = 0;x < 4; x++) {
-            for (int y = 0 ;y < 4;y++) {
-                if (cardMap[x][y].getNum()==0||
-                        (y>0&&cardMap[x][y].equals(cardMap[x][y-1]))||
-                        (y<3&&cardMap[x][y].equals(cardMap[x][y+1]))||
-                        (x>0&&cardMap[x][y].equals(cardMap[x-1][y]))||
-                        (x<3&&cardMap[x][y].equals(cardMap[x+1][y]))) {
+        for (int x = 0; x < 4; x++) {
+            for (int y = 0; y < 4; y++) {
+                if (cardMap[x][y].getNum() == 0 ||
+                        (y > 0 && cardMap[x][y].equals(cardMap[x][y - 1])) ||
+                        (y < 3 && cardMap[x][y].equals(cardMap[x][y + 1])) ||
+                        (x > 0 && cardMap[x][y].equals(cardMap[x - 1][y])) ||
+                        (x < 3 && cardMap[x][y].equals(cardMap[x + 1][y]))) {
                     complete = false;
                     break ALL;
                 }
@@ -255,32 +266,33 @@ public class GameView extends GridLayout {
         }
         if (complete) {
             MainActivity.getMainActivity().getVoice(3);
-            AlertDialog.Builder dialog = new AlertDialog.Builder(getContext());
-            dialog.setTitle("一不小心");
-            dialog.setMessage("游戏结束了,您本局得分:"+MainActivity.getMainActivity().getScore()+"分.继续加油哦！");
-            dialog.setCancelable(false);
-            dialog.setNegativeButton("退出游戏", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    MainActivity.getMainActivity().finish();
-                }
-            });
-            dialog.setPositiveButton("重新开始", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    startGame();
-                }
-            });
-            dialog.show();
+            showDialog();
         }
     }
-    public class restartReceiver extends BroadcastReceiver{
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            startGame();
-        }
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getMainActivity());
+        View view = View.inflate(MainActivity.getMainActivity(), R.layout.dialog_layout, null);
+        resultScore = (TextView) view.findViewById(R.id.high_Score);
+        ok = (Button) view.findViewById(R.id.ok);
+        cancel = (Button) view.findViewById(R.id.cancel);
+        resultScore.setText("您本局得分:" + MainActivity.getMainActivity().getScore() + "分.");
+        ok.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startGame();
+                dialog.dismiss();
+            }
+        });
+        cancel.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.getMainActivity().finish();
+                dialog.dismiss();
+            }
+        });
+        dialog = builder.create();
+        dialog.setView(view, 0, 0, 0, 0);
+        dialog.show();
     }
-    private Card[][] cardMap = new Card[4][4];
-    private List<Point> emptyPoints = new ArrayList<Point>();
 }
