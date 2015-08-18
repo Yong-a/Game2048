@@ -293,6 +293,7 @@ public class GameView extends GridLayout {
         });
         dialog = builder.create();
         dialog.setView(view, 0, 0, 0, 0);
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
 }
